@@ -1,15 +1,10 @@
 {
-  "name": "sonora-android",
+  "name": "sonora-native-media",
   "version": "1.0.0",
   "private": true,
-  "scripts": {
-    "build:android": "npx cap sync android"
-  },
-  "dependencies": {
-    "@capacitor/core": "^7.0.0",
-    "@capacitor/android": "^7.0.0"
-  },
-  "devDependencies": {
-    "@capacitor/cli": "^7.0.0"
+  "main": "index.js",
+  "peerDependencies": { "@capacitor/core": "^7.0.0" },
+  "capacitor": {
+    "android": { "src": "android" }
   }
 }
