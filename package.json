@@ -3,13 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build:android": "npx cap sync android"
+    "build:web": "mkdir -p www && cp index.html manifest.webmanifest sw.js icon-192.png icon-512.png www/ && esbuild native-media/web.js --bundle --format=iife --outfile=www/native-media.js",
+    "build:android": "npm run build:web && npx cap sync android"
   },
   "dependencies": {
     "@capacitor/core": "^7.0.0",
-    "@capacitor/android": "^7.0.0"
+    "@capacitor/android": "^7.0.0",
+    "sonora-native-media": "file:./native-media"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.0.0"
+    "@capacitor/cli": "^7.0.0",
+    "esbuild": "^0.24.2"
   }
 }
