@@ -42,6 +42,24 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
+      - name: Inject native media service
+        run: |
+          D=android/app/src/main/java/com/nikhildcrypto/sonora
+          cp native/*.java $D/
+          cat > $D/MainActivity.java <<'EOF'
+          package com.nikhildcrypto.sonora;
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+          public class MainActivity extends BridgeActivity {
+            @Override public void onCreate(Bundle b) {
+              registerPlugin(SonoraNativeMediaPlugin.class);
+              super.onCreate(b);
+            }
+          }
+          EOF
+          sed -i 's|<application|<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/><uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/><uses-permission android:name="android.permission.POST_NOTIFICATIONS"/><application|; s|</application>|<service android:name=".SonoraPlaybackService" android:exported="true" android:foregroundServiceType="mediaPlayback"><intent-filter><action android:name="androidx.media3.session.MediaSessionService"/></intent-filter></service></application>|' android/app/src/main/AndroidManifest.xml
+          printf "\ndependencies { implementation 'androidx.media3:media3-session:1.5.1' }\n" >> android/app/build.gradle
+
       - name: Sync Android project
         run: npx cap sync android
 
