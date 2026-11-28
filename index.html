@@ -298,6 +298,15 @@ const $=id=>document.getElementById(id),Q=s=>document.querySelectorAll(s);
 const DB_NAME='sonora-offline-db',DB_VERSION=2,STORE='tracks',META='meta';
 let db=null,tracks=[],playlists=[],recent=[],cur=null,url=null,queue=[],orig=[],qi=-1,shuffle=false,repeat=0,filter='all',openPl=null,shown,drag=false,npOpen=false,persisted=false,DI={on:true,chg:true,pau:true,delay:5,style:'black',lite:false,res:true,spd:1,cf:0,q:'all',glass:'std',gi:60,ae:false,eq:false,vis:'bars',ss:false,th:'sonora',acc:'#9d8df5',rm:false},itm,islLast,hist=[],lastSave=0,pins=[],LY=null,lyOn=false,sleepAt=0,sleepEnd=false,xfFor=null,qd=null,qSup=false;
 const audio=$('audio'),urls=new Map(),NOTE='<svg><use href="#i-note"/></svg>';
+/* ---------- native Android notification / lock screen (no-op in browsers) ---------- */
+const NM=window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?Capacitor.registerPlugin('SonoraNativeMedia'):null;
+function nmArt(u){return new Promise(r=>{if(!u)return r('');const i=new Image();i.onload=()=>{try{const c=document.createElement('canvas'),k=Math.min(1,512/Math.max(i.width,i.height));c.width=i.width*k|0;c.height=i.height*k|0;c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.85).split(',')[1])}catch{r('')}};i.onerror=()=>r('');i.src=u})}
+async function nm(meta,u){if(!NM)return;const t=byId(cur);let m={};
+ if(!t)return void NM.update({clear:true}).catch(()=>{});
+ if(meta){const art=await nmArt(u);if(cur!==t.id)return;m={id:t.id,title:t.name,artist:who(t),album:t.album||'SONORA',art}}
+ const d=audio.duration;NM.update({...m,pos:Math.round(audio.currentTime*1e3),dur:Math.round((d>0&&isFinite(d)?d:t.dur||0)*1e3),playing:!audio.paused,speed:audio.playbackRate||1}).catch(()=>{})}
+if(NM){['play','pause','seeked','ratechange','durationchange'].forEach(e=>audio.addEventListener(e,()=>nm()));
+ NM.addListener('action',e=>{const a=e.a;if(a==='play'){if(audio.paused)toggle()}else if(a==='pause')audio.pause();else if(a==='next')next(false);else if(a==='prev')prev();else if(a==='seek')audio.currentTime=e.t/1e3})}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const fmt=s=>Number.isFinite(s)&&s>=0?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
 const clean=n=>n.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim()||'Unknown track';
@@ -380,6 +389,7 @@ function ui(){const t=byId(cur),pl=!!t&&!audio.paused;
   [$('cover'),$('mArt'),$('iArt'),$('iArt2')].forEach(e=>{e.style.background=g;e.innerHTML=h});
   Q('[data-a=song]').forEach(e=>e.classList.toggle('cur',e.dataset.id===cur));
   buildLy();if(t){const s=$('stage');s.classList.remove('swap');void s.offsetWidth;s.classList.add('swap');tint(t,u)}
+  nm(1,u);
   if('mediaSession'in navigator){try{navigator.mediaSession.metadata=t?new MediaMetadata({title:t.name,artist:who(t),album:t.album||'SONORA',artwork:u?[{src:u,sizes:'512x512',type:t.art.type||'image/jpeg'}]:[]}):null}catch{}}}
  if('mediaSession'in navigator)navigator.mediaSession.playbackState=pl?'playing':'paused';islUI()}
 

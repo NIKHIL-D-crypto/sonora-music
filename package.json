@@ -1,9 +1,7 @@
-
 {
   "name": "sonora-native-media",
   "version": "1.0.0",
   "private": true,
-  "main": "index.js",
   "dependencies": {
     "@capacitor/core": "^7.0.0",
     "@capacitor/android": "^7.0.0"
